@@ -12,13 +12,14 @@ describe('Express App Tests', () => {
             });
     });
 
-    it('should return valid HTML content', (done) => {
+    it('should return "Hello World!" content', (done) => {
         request(app)
             .get('/')
-            .expect('Content-Type', /html/)
+            .expect('Hello World!')
             .end((err, res) => {
                 if (err) return done(err);
                 done();
             });
     });
 });
+
