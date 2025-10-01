@@ -4,7 +4,8 @@
   "description": "Sample Node.js (Express) app for AWS Elastic Beanstalk",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "mocha test/**/*.js --reporter mocha-junit-reporter --reporter-options mochaFile=./reports/junit/test-results.xml"
   },
   "repository": {
     "type": "git",
@@ -12,6 +13,12 @@
   },
   "license": "MIT-0",
   "dependencies": {
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "ejs": "3.1.9"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "supertest": "^6.3.3",
+    "mocha-junit-reporter": "^2.2.0"
   }
 }

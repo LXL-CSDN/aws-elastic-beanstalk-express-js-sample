@@ -16,9 +16,16 @@ pipeline {
                 }
             }
             steps {
+                echo 'Checking Node.js and npm versions...'
                 sh 'node -v && npm -v'
-                sh 'npm ci'
+                
+                echo 'Installing dependencies...'
+                sh 'npm install --save'
+                
+                echo 'Running unit tests...'
                 sh 'npm test'
+                
+                echo 'Archiving test results...'
                 junit 'reports/junit/*.xml'
                 archiveArtifacts artifacts: 'reports/**/*', allowEmptyArchive: true
             }
@@ -32,10 +39,15 @@ pipeline {
                     reuseNode true
                 }
             }
-            environment { SNYK_TOKEN = credentials('snyk-token') }
+            environment { 
+                SNYK_TOKEN = credentials('snyk-token') 
+            }
             steps {
+                echo 'Authenticating with Snyk...'
                 sh 'snyk auth $SNYK_TOKEN'
-                // Threshold high: High or Critical will return a non-zero exit code, causing the pipeline to fail
+                
+                echo 'Running dependency vulnerability scan...'
+                // Fails if a HIGH or CRITICAL vulnerability is detected
                 sh 'snyk test --severity-threshold=high'
             }
         }
@@ -44,8 +56,11 @@ pipeline {
             agent any
             steps {
                 script {
+                    echo 'Building Docker image...'
                     sh 'docker version'
                     def app = docker.build("${IMAGE_NAME}:${env.BUILD_NUMBER}")
+                    
+                    echo 'Pushing image to Docker Hub...'
                     docker.withRegistry('', REGISTRY_CREDENTIALS) {
                         app.push()
                         app.push('latest')
@@ -58,9 +73,16 @@ pipeline {
     post {
         always {
             node('') {
+                echo 'Archiving Dockerfile and cleaning workspace...'
                 archiveArtifacts artifacts: 'Dockerfile,.dockerignore', allowEmptyArchive: true
                 cleanWs()
             }
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check logs for details.'
         }
     }
 }
